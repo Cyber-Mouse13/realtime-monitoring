@@ -1,4 +1,4 @@
-# Realtime Monitoring (sklearn.load_diabetes + AMQP + docker-compose)
+# Realtime monitoring (sklearn.load_diabetes + AMQP + docker-compose)
 
 Проект реализует упрощённый мониторинг качества модели в режиме "почти реального времени".
 Все сервисы запускаются через docker-compose и обмениваются сообщениями через RabbitMQ (AMQP).
