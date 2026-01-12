@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  features:
+    build: ./services/features
+    container_name: features
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      FEATURES_QUEUE: "X"
+      Y_TRUE_QUEUE: "y_true"
+      SLEEP_SECONDS: "10"
+
+  model:
+    build: ./services/model
+    container_name: model
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      FEATURES_QUEUE: "X"
+      Y_PRED_QUEUE: "y_pred"
+
+  metric:
+    build: ./services/metric
+    container_name: metric
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      Y_TRUE_QUEUE: "y_true"
+      Y_PRED_QUEUE: "y_pred"
+      METRIC_LOG_PATH: "/app/logs/metric_log.csv"
+      BUFFER_TTL_SECONDS: "600"
+    volumes:
+      - ./logs:/app/logs
+
+  plot:
+    build: ./services/plot
+    container_name: plot
+    depends_on:
+      - metric
+    environment:
+      METRIC_LOG_PATH: "/app/logs/metric_log.csv"
+      PLOT_PATH: "/app/logs/error_distribution.png"
+      PLOT_SLEEP_SECONDS: "10"
+      HIST_BINS: "30"
+    volumes:
+      - ./logs:/app/logs
